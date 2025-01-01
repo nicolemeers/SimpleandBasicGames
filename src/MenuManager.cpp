@@ -74,7 +74,7 @@ void MenuManager::menuLoop()
 		// check exit
 		if (curGame == 3)
 		{
-			std::cout << "\nQuitting...";
+			// std::cout << "\nQuitting...";
 			break;
 		}
 
