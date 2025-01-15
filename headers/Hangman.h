@@ -11,44 +11,34 @@
 #include <curl/curl.h>
 #include <algorithm>
 
-// using namespace std;
+//using namespace std;
 
 #pragma once
 class Hangman
 {
 private:	
 	// list to hold the words we pull (we will add this to our set)
-	std::vector<std::string> words =
-	{	"syzygy", "abatis", "controvert", "controversy", "contuse", "luminary", "overt", 
-		"narcissism", "happy", "elegant", "poor", "bee", "helicopter", "fast", "fortuitous", 
-		"sequacious", "lascivious", "lecherous", "pulchritudinous", "ineffable", "jubilee", 
-		"jazz", "rythm", "capricious", "avarice", "greed", "serendipitous", "misanthrope",
-		"taciturn", "aloof", "callous", "cynical", "callow", "sad", "gallows", "perhaps", 
-		"melifluous","sonorous", "egress", "somber", "solemn", "gallant", "dour", "din", 
-		"eccentric", "epitome", "inundate", "deluged", "frenetic", "dessicated", "wry", "sly", 
-		"wend", "gallant", "salacious", "scrupulous", "dubious", "objurgate", "happy", "sad",
-		"splendid", "sublime", "monotonous", "melancholic", "melodious", "bird", "songbird",
-		"rhythm", "silly", "boring"
-	};
+	std::vector<std::string> m_words;
+	// don't put information in the header file
 
 	// use a set to store all words (set to prevent repeats)
-	std::set<std::string> wordBank;
+	std::set<std::string> m_wordBank;
 
 	// list to hold guessed letters --> if true, we have guessed, if not, fair game
-	std::unordered_map<char, bool> guessed;
+	std::unordered_map<char, bool> m_guessed;
 
 	// store the word we are guessing
-	std::string currentHangmanWord;
+	std::string m_currentHangmanWord;
 
 	// store the guessed state of the word
-	std::string guessedHangmanWord;
+	std::string m_guessedHangmanWord;
 
 	// number of chances left
-	int chances;
+	int m_chances;
 
 	// store the game over state, and if it's a loss/win, and if another game should start
-	bool isVictory;
-	bool newGame;
+	bool m_isVictory;
+	bool m_newGame;
 
 
 	// ---------------------------------------- word bank construction ----------------------------------------
@@ -63,8 +53,6 @@ private:
 	void wordBankHandler();
 	// ---------------------------------------- word bank construction ----------------------------------------
 
-
-	// ---------------------------------------- game loop -----------------------------------------------------
 	
 	// initialize functions
 	// the instructions given to the player for how to play the game
@@ -80,18 +68,17 @@ private:
 	// end state (victory/loss, quit)
 	void endState();
 
-	// --------------------------------------- game state helpers ---------------------------------------------
+	// helpers
 	// check for already used letters in the answer
-	bool hasUsed(char guess);
+	const bool hasUsed(char guess) const;
 
-	bool isValid(char& guess);
+	const bool isValid(char& guess) const;
 
 	void updateHangman(char guess);
 
 	// "draw" the hangman sentance state
 	void drawHangman() const;
-	// --------------------------------------- game state helpers ---------------------------------------------
-	// --------------------------------------- game loop ------------------------------------------------------
+	
 
 
 public:
@@ -112,5 +99,6 @@ public:
 // Use libcurl to pull data from the API
 // function to pass into libcurl handlers (it is used whenever there is data that needs to be saved)
 size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userData);
+
 
 
