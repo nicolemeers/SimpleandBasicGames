@@ -1,4 +1,4 @@
-#include "../headers/Hangman.h"
+#include "Hangman.h"
 
 /*
 * This callback function gets called by libcurl as soon as there is data received that needs to 
@@ -26,7 +26,7 @@ void Hangman::initWordBank()
 	* Move should be as good/fast as copy or better
 	*/
 
-	wordBank = std::set<std::string>(words.begin(), words.end());
+	m_wordBank = std::set<std::string>(m_words.begin(), m_words.end());
 
 	// moving words over removes them from the vector. 
 	// this line of Moving the words over at the end removes previously added data:
@@ -56,8 +56,8 @@ void Hangman::readContent()
 	std::string word = "";
 
 	// we do not need to do global curl init
-	
-	for (auto iter = words.begin(); iter != words.end(); iter++)
+	auto setEnd = m_words.end();
+	for (auto iter = m_words.begin(); iter != setEnd; iter++)
 	//for (int i = 0; i < words.size(); i++)
 	{
 		// reset our string for the next word
@@ -123,11 +123,11 @@ void Hangman::parserFunction(std::string rawBuffer)
 	//cout << parseS.str() << endl;
 
 	// deal with the opening format of the response
-	std::getline(parseS, formatToken, '[');
+	getline(parseS, formatToken, '[');
 	while (wordToken != "")
 	{
 		// skip the quotation marks
-		std::getline(parseS, formatToken, '"');
+		getline(parseS, formatToken, '"');
 
 		// check if there is a bracket
 		if (formatToken.find("]") != std::string::npos)
@@ -152,7 +152,7 @@ void Hangman::parserFunction(std::string rawBuffer)
 		}
 
 		// add the word into our set
-		wordBank.emplace(wordToken);
+		m_wordBank.emplace(wordToken);
 
 	}
 
@@ -168,11 +168,6 @@ void Hangman::wordBankHandler()
 	
 	// pull words using the Thesaurus API
 	readContent();
-
-	std::cout << "\n\nDone!";
-
-	// Pause for 2 seconds before continuing
-	Sleep(2000);
 }
 
 void Hangman::gameExplanation() const
@@ -195,29 +190,29 @@ void Hangman::gameExplanation() const
 void Hangman::startState()
 {
 	// make sure everything is reset/cleared
-	newGame = false;
-	isVictory = false;
-	chances = 12;
-	currentHangmanWord.clear();
-	guessedHangmanWord.clear();
-	guessed.clear();
+	m_newGame = false;
+	m_isVictory = false;
+	m_chances = 12;
+	m_currentHangmanWord.clear();
+	m_guessedHangmanWord.clear();
+	m_guessed.clear();
 
 
 	// we need to select our word randomly
 	srand(time(0));
-	int randIndex = rand() % wordBank.size();
+	int randIndex = rand() % m_wordBank.size();
 
 	// set uses iterator
 	// we will use std::next to advance the iterator to the right index/position
-	auto iter = std::next(wordBank.begin(), randIndex);
+	auto iter = next(m_wordBank.begin(), randIndex);
 
 	// update the word we are using
-	currentHangmanWord = *iter;
+	m_currentHangmanWord = *iter;
 	// set up the guessed word
-	guessedHangmanWord = *iter;
+	m_guessedHangmanWord = *iter;
 
 	// we need to grey up our guess state
-	for (char& c : guessedHangmanWord) 
+	for (char& c : m_guessedHangmanWord) 
 	{
 		// we want to leave in hyphons and spaces
 		if (c == '-' || c == ' ')
@@ -248,20 +243,20 @@ bool Hangman::guessingState()
 	else
 	{
 		std::cout << "\n\nThat letter is incorrect.\n";
-		chances--;
+		m_chances--;
 		// wait for the user to click to continue
 		system("pause");
 	}
 
 	// update our guessed words
-	guessed[guess] = true;
+	m_guessed[guess] = true;
 
 	// check if the game is over (win/lose)
-	if (chances == 0 || guessedHangmanWord.find("_") == std::string::npos)
+	if (m_chances == 0 || m_guessedHangmanWord.find("_") == std::string::npos)
 	{
-		if (chances > 0)
+		if (m_chances > 0)
 		{
-			isVictory = true;
+			m_isVictory = true;
 		}
 		return false;
 	}
@@ -276,47 +271,46 @@ void Hangman::endState()
 	system("cls");
 	drawHangman();
 
-	if (isVictory)
+	if (m_isVictory)
 	{
 		std::cout << "\nCONGRATULATIONS\n\n";
 	}
 	else
 	{
-		std::cout << "\nOut of chances - You've hung!\n\nThe word was : " << currentHangmanWord;
+		std::cout << "\nOut of chances - You've hung!\n\nThe word was : " << m_currentHangmanWord;
 		std::cout << "\n\nGAME OVER\n\n";
 	}
 
 	// ask if they'd like to play a new game
-	std::string response = "";
-	std::cout << "\nWould you like to play another hangman?(y/n) ";
+	char response = 0;
+	std::cout << "\nWould you like to play another hangman? (y/n) ";
 	std::cin >> response;
 
-	// to convert to lowercase:
-	// rangebased loop, tolower each char
-	// transform
-	// for_each
-	transform(response.begin(), response.end(), response.begin(), ::tolower);
-
-	while (response != "y" && response != "n")
+	///// DAD //////////////
+	/*stricmp(response, "y");*/
+	while (response != 'y' && response != 'Y' && response != 'n' && response != 'N')
 	{
-		std::cout << "\nWould you like to play another game? (y/n)";
+		std::cout << "\nWould you like to play another hangman? (y/n) ";
 		std::cin >> response;
-		transform(response.begin(), response.end(), response.begin(), ::tolower);
 	}
+	////////////////////////////
+	// 
 
-	if (response == "y")
-		newGame = true;
+	if (response == 'y')
+		m_newGame = true;
 }
 
-bool Hangman::hasUsed(char guess)
+const bool Hangman::hasUsed(char guess) const
 {
-	if (guessed[guess])
+	//if (m_guessed[guess])
+		//return true;
+	if (m_guessed.find(guess) != m_guessed.end())
 		return true;
 
 	return false;
 }
 
-bool Hangman::isValid(char& guess)
+const bool Hangman::isValid(char& guess) const // change is valid so it can be const
 {
 	// first, check if the guess is a valid entry
 	while (!isalpha(guess))
@@ -333,7 +327,7 @@ bool Hangman::isValid(char& guess)
 	}
 
 	// now we need to check against the word we're guessing for
-	if (currentHangmanWord.find(std::string(1,guess)) != std::string::npos)
+	if (m_currentHangmanWord.find(std::string(1,guess)) != std::string::npos)
 		return true;
 
 	return false;
@@ -343,9 +337,9 @@ void Hangman::updateHangman(char guess)
 {
 	// get all indices the letter appears in
 	std::vector<int> indices;
-	for (int i = 0; i < currentHangmanWord.length(); i++)
+	for (int i = 0; i < m_currentHangmanWord.length(); i++)
 	{
-		if (guess == currentHangmanWord.at(i))
+		if (guess == m_currentHangmanWord.at(i))
 		{
 			indices.push_back(i);
 		}
@@ -354,32 +348,33 @@ void Hangman::updateHangman(char guess)
 	// update the guess state
 	for (int i : indices)
 	{
-		guessedHangmanWord.at(i) = guess;
+		m_guessedHangmanWord.at(i) = guess;
 	}
 
 }
 
 void Hangman::drawHangman() const
 {
-	std::cout << "Guesses remaining: " << chances << "\n\n";
+	std::cout << "Guesses remaining: " << m_chances << "\n\n";
 	
 	std::cout << "Current word:\n";
 
-	for (char c : guessedHangmanWord)
+	for (char c : m_guessedHangmanWord)
 	{
 		std::cout << c << " ";
 	}
 	std::cout << "\n";
 
-	if (guessed.size() > 0)
+	if (m_guessed.size() > 0)
 	{
 		std::cout << "Guessed letters:\n";
-		
-		for (auto iter = guessed.begin(); iter != guessed.end(); iter++)
+		// create local cashed copy (otherwise, we will a copy every time in our for loop; we only want to do this for removing elements)
+		auto end = m_guessed.end();
+		for (auto iter = m_guessed.begin(); iter != end; iter++)
 		{
 			std::cout << iter->first;
-			auto temp = std::next(iter);
-			if (temp != guessed.end())
+			auto temp = next(iter);
+			if (temp != end)
 			{
 				std::cout << ", ";
 			}
@@ -391,18 +386,35 @@ void Hangman::drawHangman() const
 	}
 }
 
-Hangman::Hangman()
+Hangman::Hangman() : m_isVictory(false), m_chances(12), m_newGame(false)
 {
-	// do nothing
+	// don't do this, do an initilizer list
+	/*
 	isVictory = false;
 	wordBank = {};
-	chances = 12;
-	newGame = false;
+	m_chances = 12;
+	m_newGame = false;
 	guessed = {};
+	*/
 }
 
 void Hangman::hangManInit()
 {
+	// set up our vector (our base words)
+	m_words = 
+	{	"syzygy", "abatis", "controvert", "controversy", "contuse", "luminary", "overt", 
+		"narcissism", "happy", "elegant", "poor", "bee", "helicopter", "fast", "fortuitous", 
+		"sequacious", "lascivious", "lecherous", "pulchritudinous", "ineffable", "jubilee", 
+		"jazz", "rythm", "capricious", "avarice", "greed", "serendipitous", "misanthrope",
+		"taciturn", "aloof", "callous", "cynical", "callow", "sad", "gallows", "perhaps", 
+		"melifluous","sonorous", "egress", "somber", "solemn", "gallant", "dour", "din", 
+		"eccentric", "epitome", "inundate", "deluged", "frenetic", "dessicated", "wry", "sly", 
+		"wend", "gallant", "salacious", "scrupulous", "dubious", "objurgate", "happy", "sad",
+		"splendid", "sublime", "monotonous", "melancholic", "melodious", "bird", "songbird",
+		"rhythm", "silly", "boring"
+	};
+
+
 	// we need to have a function that gets the word bank to choose from
 	//	have a handler for the wordBank
 	wordBankHandler();
@@ -418,7 +430,7 @@ bool Hangman::gameLoop()
 	do
 	{
 		// reset the new game condition
-		newGame = false;
+		m_newGame = false;
 
 		// set up the game 
 		startState();
@@ -430,7 +442,7 @@ bool Hangman::gameLoop()
 		endState();
 
 
-	} while (newGame);
+	} while (m_newGame);
 
 	std::cout << "\nExiting game...\n";
 
@@ -440,11 +452,11 @@ bool Hangman::gameLoop()
 void Hangman::shutdown()
 {
 	// reset
-	isVictory = false;
-	//wordBank = {};
-	chances = 12;
-	newGame = false;
-	guessed = {};
+	m_isVictory = false;
+	//m_wordBank = {};
+	m_chances = 12;
+	m_newGame = false;
+	m_guessed = {};
 }
 
 Hangman::~Hangman()
